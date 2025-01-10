@@ -25,4 +25,8 @@ export class SearchInputComponent {
         this.searchChange.emit(value?.toLowerCase() || '');
       });
   }
+
+  clearSearch() {
+    this.searchControl.setValue('');
+  }
 }
