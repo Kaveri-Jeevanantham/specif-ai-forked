@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, AfterViewInit, ViewChild } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { ProjectsState } from '../../store/projects/projects.state';
 import { BehaviorSubject, combineLatest, Observable, Subscription, first } from 'rxjs';
@@ -37,6 +37,8 @@ import { ToasterService } from 'src/app/services/toaster/toaster.service';
   ],
 })
 export class DocumentListingComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild(SearchInputComponent) searchInput!: SearchInputComponent;
+
   loadingProjectFiles$ = this.store.select(ProjectsState.loadingProjectFiles);
   requirementTypes: any = RequirementTypeEnum;
   private searchTerm$ = new BehaviorSubject<string>('');
@@ -58,6 +60,11 @@ export class DocumentListingComponent implements OnInit, OnDestroy, AfterViewIni
     // Reset scroll position when a new folder is set
     if (this.scrollContainer) {
       this.scrollContainer.scrollTop = 0;
+    }
+
+    // Reset search input when a new folder is set
+    if (this.searchInput) {
+      this.searchInput.clearSearch();
     }
   }
 
