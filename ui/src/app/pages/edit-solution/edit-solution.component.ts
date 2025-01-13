@@ -7,6 +7,7 @@ import {
   ArchiveFile,
   ReadFile,
   UpdateFile,
+  checkBPFileAssociations,
 } from '../../store/projects/projects.actions';
 import { getDescriptionFromInput } from '../../utils/common.utils';
 import {
@@ -35,9 +36,12 @@ import { ErrorMessageComponent } from '../../components/core/error-message/error
 import { ConfirmationDialogComponent } from '../../components/confirmation-dialog/confirmation-dialog.component';
 import {
   CONFIRMATION_DIALOG,
+  ERROR_MESSAGES,
   TOASTER_MESSAGES,
 } from '../../constants/app.constants';
 import { ToasterService } from 'src/app/services/toaster/toaster.service';
+import { catchError, switchMap, take } from 'rxjs';
+import { RequirementTypeEnum } from 'src/app/model/enum/requirement-type.enum';
 
 @Component({
   selector: 'app-edit-solution',
@@ -315,6 +319,42 @@ ${chat.assistant}`,
 
   deleteFile() {
     const reqId = this.fileName.replace(/\-base.json$/, '');
+
+    if (
+      this.folderName === RequirementTypeEnum.PRD ||
+      this.folderName === RequirementTypeEnum.BRD
+    ) {
+      this.store
+        .dispatch(new checkBPFileAssociations(this.folderName, this.fileName))
+        .pipe(
+          switchMap(() =>
+            this.store
+              .select(ProjectsState.getBpAssociationStatus)
+              .pipe(take(1)),
+          ),
+          catchError(() => {
+            this.toastService.showError(
+              TOASTER_MESSAGES.ENTITY.DELETE.FAILURE(this.folderName, reqId),
+            );
+            return [];
+          }),
+        )
+        .subscribe((res) => {
+          if (res.isAssociated) {
+            this.toastService.showWarning(
+              ERROR_MESSAGES.DELETE_ASSOCIATED_ERROR(reqId, res.bpIds),
+            );
+            return;
+          }
+
+          this.promptFileDeletion(reqId);
+        });
+    } else {
+      this.promptFileDeletion(reqId);
+    }
+  }
+
+  private promptFileDeletion(reqId: string) {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '500px',
       data: {
@@ -326,15 +366,12 @@ ${chat.assistant}`,
     });
 
     dialogRef.afterClosed().subscribe((res) => {
-      if (!res) {
+      if (res === false) {
         this.store.dispatch(new ArchiveFile(this.absoluteFilePath));
         this.allowFreeRedirection = true;
         this.navigateBackToDocumentList(this.initialData);
         this.toastService.showSuccess(
-          TOASTER_MESSAGES.ENTITY.DELETE.SUCCESS(
-            this.folderName,
-            reqId,
-          ),
+          TOASTER_MESSAGES.ENTITY.DELETE.SUCCESS(this.folderName, reqId),
         );
       }
     });

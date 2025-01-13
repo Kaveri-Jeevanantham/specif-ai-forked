@@ -82,3 +82,12 @@ export class UpdateMetadata {
 export class ClearBRDPRDState {
   static readonly type = '[Projects] Clear BRD and PRD State';
 }
+
+export class checkBPFileAssociations {
+  static readonly type = '[Projects] Check File Associations';
+
+  constructor(
+    public folderName: string,
+    public fileName: string,
+  ) {}
+}

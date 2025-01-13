@@ -13,9 +13,16 @@ export const CHAT_TYPES = {
   TASK: 'task',
 };
 
+export const BP_FILE_KEYS = {
+  BRD_KEY: 'selectedBRDs',
+  PRD_KEY: 'selectedPRDs',
+};
+
 export const ERROR_MESSAGES = {
   PASSWORD_ERROR: 'Passcode does not match. Please try again.',
-  GENERATE_SUGGESTIONS_FAILED: 'Failed to generate suggestions'
+  GENERATE_SUGGESTIONS_FAILED: 'Failed to generate suggestions',
+  DELETE_ASSOCIATED_ERROR: (reqId: string, bpIds: string[]) =>
+    `Unable to remove ${reqId} because it's linked to the following business processes: ${bpIds.join(', ')}.`,
 };
 
 export const SOLUTION_CREATION_TOGGLE_MESSAGES = {
