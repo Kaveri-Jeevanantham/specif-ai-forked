@@ -36,17 +36,19 @@
         >
           <div
             *ngFor="let item of filteredProjectList"
-            (click)="navigateToEdit(item)"
-            (keydown.enter)="navigateToEdit(item)"
-            (keydown.space)="navigateToEdit(item); $event.preventDefault()"
             class="col-span-1 flex rounded-md shadow-sm relative"
-            role="button"
-            tabindex="0"
           >
             <div
               class="flex flex-1 items-center justify-between truncate rounded-lg border border-gray-200 bg-white hover:bg-secondary-50 transition-colors"
             >
-              <div class="flex-1 truncate p-4 text-sm">
+              <div
+                class="flex-1 truncate p-4 text-sm rounded-lg"
+                (click)="navigateToEdit(item)"
+                (keydown.enter)="navigateToEdit(item)"
+                (keydown.space)="navigateToEdit(item); $event.preventDefault()"
+                role="button"
+                tabindex="0"
+              >
                 <a class="font-semibold text-secondary-500">
                   {{ item.fileName.replace("-base.json", "") }}
                 </a>
@@ -107,14 +109,7 @@
               <div class="absolute top-4 right-4 flex space-x-2">
                 <app-button
                   *ngIf="item.folderName === requirementTypes.PRD"
-                  routerLink="/user-stories/{{ item.id }}"
-                  [state]="{
-                    data: this.appInfo,
-                    id: item.id,
-                    folderName: item?.folderName,
-                    fileName: item?.fileName,
-                    req: item.content,
-                  }"
+                  (click)="navigateToUserStories(item)"
                   buttonContent="Stories"
                   theme="secondary_outline"
                   size="sm"

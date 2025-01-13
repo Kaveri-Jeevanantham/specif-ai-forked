@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { NGXLogger } from 'ngx-logger';
 import { Store } from '@ngxs/store';
 import { UserStoriesState } from '../../store/user-stories/user-stories.state';
@@ -55,7 +55,6 @@ import { BehaviorSubject } from 'rxjs';
   standalone: true,
   imports: [
     ButtonComponent,
-    RouterLink,
     MatMenuModule,
     AsyncPipe,
     NgIf,
@@ -228,6 +227,24 @@ export class UserStoriesComponent implements OnInit {
         },
       })
       .then();
+  }
+
+  navigateToTaskList(userStory: IUserStory, index: number) {
+    this.router.navigate(['/task-list', userStory.id], {
+      state: {
+        config: {
+          folderName: this.navigation.folderName,
+          fileName: this.navigation.fileName,
+          projectId: this.navigation.projectId,
+          newFileName: this.newFileName,
+          currentProject: this.currentProject,
+          i: index,
+          featureId: userStory.id,
+          featureName: userStory.name,
+          reqId: this.newFileName.split('-')[0],
+        },
+      },
+    });
   }
 
   navigateToAppIntegrations() {

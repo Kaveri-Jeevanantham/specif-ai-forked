@@ -1,5 +1,5 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 import {
   EditUserStory,
@@ -41,7 +41,6 @@ import { BehaviorSubject } from 'rxjs';
     NgIf,
     AsyncPipe,
     ButtonComponent,
-    RouterLink,
     NgForOf,
     NgIconComponent,
     ListItemComponent,
@@ -136,6 +135,14 @@ export class TaskListComponent implements OnInit, OnDestroy {
         },
       })
       .then();
+  }
+
+  navigateToAddTask() {
+    this.router.navigate(['task/add', this.selectedUserStory?.id], {
+      state: {
+        config: this.config,
+      },
+    });
   }
 
   addExtraContext() {

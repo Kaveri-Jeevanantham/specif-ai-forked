@@ -8,7 +8,7 @@ import {
   truncateWithEllipsis,
 } from '../../utils/common.utils';
 import { filter, map, switchMap } from 'rxjs/operators';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { IList } from '../../model/interfaces/IList';
 import { RequirementTypeEnum } from '../../model/enum/requirement-type.enum';
 import { AsyncPipe, NgForOf, NgIf } from '@angular/common';
@@ -30,7 +30,6 @@ import { ToasterService } from 'src/app/services/toaster/toaster.service';
     AsyncPipe,
     BadgeComponent,
     ButtonComponent,
-    RouterLink,
     NgIconComponent,
     NgForOf,
     SearchInputComponent,
@@ -155,6 +154,18 @@ export class DocumentListingComponent implements OnInit, OnDestroy, AfterViewIni
     const url = folderName === this.requirementTypes.BP ? '/bp-edit' : '/edit';
     this.router.navigate([url], {
       state: { data: this.appInfo, id, folderName, fileName, req: content },
+    });
+  }
+
+  navigateToUserStories(item: any) {
+    this.router.navigate(['/user-stories', item.id], {
+      state: {
+        data: this.appInfo,
+        id: item.id,
+        folderName: item.folderName,
+        fileName: item.fileName,
+        req: item.content,
+      },
     });
   }
 

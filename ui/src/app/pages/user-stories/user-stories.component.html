@@ -103,20 +103,7 @@
       >
         <div class="absolute top-4 right-4 flex gap-2">
           <app-button
-            routerLink="/task-list/{{ userStory.id }}"
-            [state]="{
-              config: {
-                folderName: navigation.folderName,
-                fileName: navigation.fileName,
-                projectId: navigation.projectId,
-                newFileName,
-                currentProject,
-                i,
-                featureId: userStory.id,
-                featureName: userStory.name,
-                reqId: newFileName.split('-')[0],
-              },
-            }"
+            (click)="navigateToTaskList(userStory, i)"
             buttonContent="View Tasks"
             theme="secondary_outline"
             size="xs"

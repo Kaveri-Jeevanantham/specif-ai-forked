@@ -47,17 +47,13 @@
             />
           </ng-container>
 
-          <a
-            routerLink="/task/add/{{ selectedUserStory?.id }}"
-            [state]="{ config }"
-          >
-            <app-button
-              buttonContent="Add New"
-              theme="primary"
-              size="sm"
-              rounded="lg"
-            />
-          </a>
+          <app-button
+            buttonContent="Add New"
+            theme="primary"
+            size="sm"
+            rounded="lg"
+            (click)="navigateToAddTask()"
+          />
         </div>
       </div>
 

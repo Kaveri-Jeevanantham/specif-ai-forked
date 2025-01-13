@@ -134,14 +134,13 @@
         </div>
 
         <div class="mt-6 flex items-center justify-end gap-x-2">
-          <a routerLink="/apps">
-            <app-button
-              buttonContent="Cancel"
-              [disabled]="loading"
-              size="sm"
-              theme="secondary"
-            />
-          </a>
+          <app-button
+            buttonContent="Cancel"
+            [disabled]="loading"
+            size="sm"
+            theme="secondary"
+            (click)="navigateToDashboard()"
+          />
           <app-button
             buttonContent="Create Solution"
             [disabled]="loading || solutionForm.invalid"

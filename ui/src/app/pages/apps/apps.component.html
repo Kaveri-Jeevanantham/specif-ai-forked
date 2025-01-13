@@ -5,7 +5,7 @@
     >
       <h1 class="text-xl font-semibold leading-6 text-gray-900">Solutions</h1>
       <app-button
-        [routerLink]="'/apps/create'"
+        (click)="navigateToCreate()"
         buttonContent="Create Solution"
         size="sm"
       />
@@ -14,7 +14,7 @@
       <!-- Your content -->
       <div class="px-6 pb-6" *ngIf="apps.length === 0">
         <button
-          routerLink="/apps/create"
+          (click)="navigateToCreate()"
           type="button"
           class="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
         >

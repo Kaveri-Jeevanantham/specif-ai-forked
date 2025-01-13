@@ -5,7 +5,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { CreateProject } from '../../store/projects/projects.actions';
 import { v4 as uuid } from 'uuid';
@@ -41,7 +41,6 @@ import { ToggleComponent } from '../../components/toggle/toggle.component';
     ErrorMessageComponent,
     InputFieldComponent,
     TextareaFieldComponent,
-    RouterLink,
     ToggleComponent,
   ],
 })
@@ -146,6 +145,10 @@ export class CreateSolutionComponent implements OnInit {
     return this.solutionForm.get('cleanSolution')?.value
       ? SOLUTION_CREATION_TOGGLE_MESSAGES.BROWNFIELD_SOLUTION
       : SOLUTION_CREATION_TOGGLE_MESSAGES.GREENFIELD_SOLUTION;
+  }
+
+  navigateToDashboard() {
+    this.router.navigate(['/apps']);
   }
 
   protected readonly FormControl = FormControl;

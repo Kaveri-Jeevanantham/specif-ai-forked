@@ -43,6 +43,10 @@ export class AppsComponent implements OnInit {
       .then();
   }
 
+  navigateToCreate() {
+    this.route.navigate(['/apps/create']);
+  }
+
   ngOnInit() {
     this.store.dispatch(new AddBreadcrumbs([]));
     this.store.dispatch(new GetProjectListAction());
