@@ -1,10 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { tap, switchMap, catchError } from 'rxjs/operators';
 import { AuthStateService } from './auth-state.service';
 import { APP_CONSTANTS } from '../../constants/app.constants';
+import { Store } from '@ngxs/store';
+import { SetLLMConfig, FetchDefaultLLMConfig, VerifyLLMConfig } from '../../store/llm-config/llm-config.actions';
+import { ToasterService } from '../toaster/toaster.service';
+import { LLMConfigState } from '../../store/llm-config/llm-config.state';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +18,9 @@ export class AuthService {
     private router: Router,
     private route: ActivatedRoute,
     private http: HttpClient,
-    private authState: AuthStateService
+    private authState: AuthStateService,
+    private store: Store,
+    private toasterService: ToasterService
   ) {
     this.verifyTokenOnInit();
   }
@@ -24,21 +30,37 @@ export class AuthService {
       const encodedPasscode = localStorage.getItem(APP_CONSTANTS.APP_PASSCODE_KEY)!;
       const appUrl = localStorage.getItem(APP_CONSTANTS.APP_URL)!;
       
-      this.verifyAccessToken(encodedPasscode, appUrl).subscribe({
-        next: (response) => {
+      this.verifyAccessToken(encodedPasscode, appUrl).pipe(
+        switchMap((response) => {
           if (response.valid) {
-            // Get return URL from query params or default to '/apps'
-            const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/apps';
-            this.router.navigateByUrl(returnUrl);
+            return this.initializeLLMConfig();
           } else {
             this.authState.logout('Invalid token. Please log in again.');
+            return of(null);
           }
+        })
+      ).subscribe({
+        next: () => {
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/apps';
+          this.router.navigateByUrl(returnUrl);
         },
         error: () => {
-          this.authState.logout('Error verifying token. Please log in again.');
+          this.authState.logout('Error verifying token or initializing LLM config. Please log in again.');
         },
       });
     }
+  }
+
+  public initializeLLMConfig(): Observable<any> {
+    return this.store.selectOnce(LLMConfigState.getConfig).pipe(
+      switchMap(config => {
+        if (config && config.provider && config.model) {
+          return this.store.dispatch(new VerifyLLMConfig());
+        } else {
+          return this.store.dispatch(new FetchDefaultLLMConfig());
+        }
+      })
+    );
   }
 
   public encodeAccessCode(accessCode: string): string {
@@ -70,9 +92,7 @@ export class AuthService {
       tap(response => {
         if (response.valid) {
           this.authState.setIsLoggedIn(true);
-          // Get return URL from query params or default to '/apps'
-          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/apps';
-          this.router.navigateByUrl(returnUrl);
+          this.initializeLLMConfig().subscribe();
         }
       })
     );
