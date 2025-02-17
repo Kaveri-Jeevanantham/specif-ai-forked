@@ -345,7 +345,7 @@ export class AiChatComponent implements OnInit {
   }
 
   get isSendDisabled(): boolean {
-    return this.generateLoader || (!this.message && this.selectedFiles.length === 0);
+    return this.generateLoader || (!this.message?.trim() && this.selectedFiles.length === 0);
   }
 
   onKbToggle(isActive: boolean) {
