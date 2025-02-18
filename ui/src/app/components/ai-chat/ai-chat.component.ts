@@ -97,8 +97,11 @@ export class AiChatComponent implements OnInit {
   projectId: string = '';
   message: string = '';
   chatSuggestions: Array<string> = [];
+  localSuggestions: Array<string> = [];
+  selectedSuggestion: string = '';
   generateLoader: boolean = false;
   loadingChat: boolean = false;
+  responseStatus: boolean = false;
   kb: string = '';
   isKbActive: boolean = false;
 
@@ -164,21 +167,32 @@ export class AiChatComponent implements OnInit {
         requirement: this.baseContent,
         knowledgeBase: this.kb,
       };
-      if (this.chatHistory.length == 0) this.getSuggestion();
+      this.getSuggestion();
     }, 1000);
   }
 
   getSuggestion() {
     this.loadingChat = true;
+    const suggestionPayload: suggestionPayload = {
+      ...this.basePayload,
+      requirement: this.baseContent,
+      suggestions: this.localSuggestions,
+      selectedSuggestion: this.selectedSuggestion,
+    };
     this.chatService
-    .generateSuggestions(this.basePayload).subscribe({
+    .generateSuggestions(suggestionPayload).subscribe({
       next: (response: Array<''>) => {
         this.chatSuggestions = response;
+        this.localSuggestions.push(...response);
         this.loadingChat = false;
+        this.responseStatus = false; 
+        this.smoothScroll();
       },
       error: (err) => {
         this.toastService.showError(ERROR_MESSAGES.GENERATE_SUGGESTIONS_FAILED);
         this.loadingChat = false;
+        this.responseStatus = false; 
+        this.smoothScroll();
       }
     });
   }
@@ -204,7 +218,7 @@ export class AiChatComponent implements OnInit {
         this.generateLoader = false;
         this.chatHistory = [...this.chatHistory, { assistant: response }];
         this.returnChatHistory();
-        this.smoothScroll();
+        this.getSuggestion();
       });
   }
 
@@ -226,6 +240,7 @@ export class AiChatComponent implements OnInit {
       chatHistory: this.chatHistory,
     };
     this.getContent.emit(data);
+    this.getSuggestion();
   }
 
   returnChatHistory() {
@@ -299,6 +314,9 @@ export class AiChatComponent implements OnInit {
   }
 
   converse(message: string) {
+    this.responseStatus = true;
+    this.selectedSuggestion = message;
+    this.chatSuggestions = []; 
     if (message || this.selectedFiles.length > 0) {
       this.generateLoader = true;
       
@@ -341,6 +359,7 @@ export class AiChatComponent implements OnInit {
       this.message = '';
       this.selectedFiles = [];
       this.selectedFilesContent = '';
+      this.responseStatus = false;
     }
   }
 
@@ -358,9 +377,6 @@ export class AiChatComponent implements OnInit {
       knowledgeBase: this.kb
     };
 
-    // Only refresh suggestions if we're at the initial state
-    if (this.chatHistory.length === 0) {
-      this.getSuggestion();
-    }
+    this.getSuggestion();    
   }
 }
