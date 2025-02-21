@@ -37,6 +37,7 @@ import { ConfirmationDialogComponent } from '../../components/confirmation-dialo
 import {
   CONFIRMATION_DIALOG,
   ERROR_MESSAGES,
+  PRD_HEADINGS,
   TOASTER_MESSAGES,
 } from '../../constants/app.constants';
 import { ToasterService } from 'src/app/services/toaster/toaster.service';
@@ -146,6 +147,13 @@ export class EditSolutionComponent {
       };
       this.featureService.updateRequirement(body).subscribe(
         (data) => {
+          data.updated.requirement = data.updated.requirement.replace(
+            PRD_HEADINGS.SCREENS,
+            PRD_HEADINGS.SCREENS_FORMATTED,
+          ).replace(
+            PRD_HEADINGS.PERSONAS,
+            PRD_HEADINGS.PERSONAS_FORMATTED,
+          );
           this.store.dispatch(
             new UpdateFile(this.absoluteFilePath, {
               requirement: data.updated.requirement,
@@ -155,7 +163,16 @@ export class EditSolutionComponent {
             }),
           );
           this.allowFreeRedirection = true;
-          this.navigateBackToDocumentList(this.initialData);
+          this.store.dispatch(new ReadFile(`${this.folderName}/${this.fileName}`));
+          this.selectedFileContent$.subscribe((res: any) => {
+            this.oldContent = res.requirement;
+            this.requirementForm.patchValue({
+              title: res.title,
+              content: res.requirement,
+              epicticketid: res.epicTicketId,
+            });
+            this.chatHistory = res.chatHistory || [];
+          });
           this.toastService.showSuccess(
             TOASTER_MESSAGES.ENTITY.UPDATE.SUCCESS(
               body.addReqtType,
@@ -183,7 +200,16 @@ export class EditSolutionComponent {
         }),
       );
       this.allowFreeRedirection = true;
-      this.navigateBackToDocumentList(this.initialData);
+      this.store.dispatch(new ReadFile(`${this.folderName}/${this.fileName}`));
+      this.selectedFileContent$.subscribe((res: any) => {
+        this.oldContent = res.requirement;
+        this.requirementForm.patchValue({
+          title: res.title,
+          content: res.requirement,
+          epicticketid: res.epicTicketId,
+        });
+        this.chatHistory = res.chatHistory || [];
+      });
       this.toastService.showSuccess(
         TOASTER_MESSAGES.ENTITY.UPDATE.SUCCESS(
           this.folderName,
@@ -224,6 +250,13 @@ export class EditSolutionComponent {
       };
       this.featureService.addRequirement(body).subscribe(
         (data) => {
+          data.LLMreqt.requirement.replace(
+            PRD_HEADINGS.SCREENS,
+            PRD_HEADINGS.SCREENS_FORMATTED,
+          ).replace(
+            PRD_HEADINGS.PERSONAS,
+            PRD_HEADINGS.PERSONAS_FORMATTED,
+          );
           this.store.dispatch(
             new CreateFile(`${this.folderName}`, {
               requirement: data.LLMreqt.requirement,
