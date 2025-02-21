@@ -34,6 +34,7 @@
             (click)="openSettingsModal()"
             (keydown.enter)="openSettingsModal()"
             (keydown.space)="openSettingsModal(); $event.preventDefault()"
+            matTooltip="Settings"
           >
             <ng-icon name="heroCog8Tooth"/>
           </div>
@@ -45,6 +46,7 @@
             (click)="openSelectRootDirectoryModal()"
             (keydown.enter)="openSelectRootDirectoryModal()"
             (keydown.space)="openSelectRootDirectoryModal(); $event.preventDefault()"
+            matTooltip="Choose Destination Folder"
           >
             <ng-icon name="heroFolder"/>
           </div>
@@ -55,6 +57,7 @@
             (click)="logout()"
             (keydown.enter)="logout()"
             (keydown.space)="logout(); $event.preventDefault()"
+            matTooltip="Logout"
           >
             <ng-icon name="heroArrowRightOnRectangle"/>
           </div>
