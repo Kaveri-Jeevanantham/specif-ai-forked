@@ -32,15 +32,15 @@ def create_process_flow_chart():
     logger.info(f"Request {g.request_id}: Entered <create_process_flow_chart>")
     try:
         data = create_process_flow_chart_schema.load(request.get_json())
+        process_flow_template = render_template(p_process_flow_chart)
+        BRDS = "\n".join(data["selectedBRDs"])
+        PRDS = "\n".join(data["selectedPRDs"])
+        process_flow_req = process_flow_template.render(title=data["title"], description=data["description"], BRDS=BRDS, PRDS=PRDS,)
+        process_flow_description = llm_service.call_llm(process_flow_req)
+        parsed_res = json.dumps(process_flow_description)
     except ValidationError as err:
         logger.error(f"Request {g.request_id}: Payload validation failed: {err.messages}")
         raise CustomAppException("Payload validation failed.", status_code=400) from err
-    try:
-        data = request.get_json()
-        process_flow_template = render_template(p_process_flow_chart)
-        process_flow_req = process_flow_template.render(title=data["title"], description=data["description"])
-        process_flow_description = llm_service.call_llm(process_flow_req)
-        parsed_res = json.dumps(process_flow_description)
     except json.JSONDecodeError as exc:
         logger.error(f"Request {g.request_id}: Failed to parse LLM response")
         raise CustomAppException(
@@ -477,7 +477,6 @@ def add_business_process():
         )
         llm_response = llm_service.call_llm(template)
     else:
-        newReqt = f"{newReqt} {BRDS} {PRDS}"
         llm_response = json.dumps(
             {"LLMreqt": {"title": data["title"], "requirement": newReqt}}
         )
@@ -513,12 +512,11 @@ def update_business_process():
             existingReqt=data["reqDesc"],
             updatedReqt=updatedReqt,
             reqId=data["reqId"],
-            BRDS=" ".join(data["selectedBRDs"]),
-            PRDS=" ".join(data["selectedPRDs"]),
+            BRDS=BRDS,
+            PRDS=PRDS,
         )
         llm_response = llm_service.call_llm(template)
     else:
-        updatedReqt = f'{updatedReqt} {BRDS} {PRDS}'
         llm_response = json.dumps(
             {"updated": {"title": data["title"], "requirement": updatedReqt}}
         )

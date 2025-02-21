@@ -4,7 +4,13 @@ from marshmallow import Schema, fields, validate
 class CreateFlowChartSchema(Schema):
     id = fields.String(required=True)
     title = fields.String(required=True)
-    description = fields.String(required=True, validate=validate.Length(min=5, error="Description must not be empty"))
+    description = fields.String(
+        required=True,
+        validate=validate.Length(min=5, error="Description must not be empty"),
+    )
+    selectedBRDs = fields.List(fields.String(), required=False, load_default=list)
+    selectedPRDs = fields.List(fields.String(), required=False, load_default=list)
+
 
 class CreateBusinessProcessSchema(Schema):
     reqt = fields.String(required=False)
