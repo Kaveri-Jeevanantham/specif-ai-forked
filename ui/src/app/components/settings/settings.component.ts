@@ -161,8 +161,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        this.errorMessage =
-          error.error?.message || 'Failed to verify provider configuration';
+        this.errorMessage = 'LLM configuration verification failed. Please contact your admin for technical support.';
         this.cdr.markForCheck();
       },
     });
