@@ -338,15 +338,8 @@ export class EditUserStoriesComponent implements OnDestroy {
         if (item.assistant == chat.assistant) return { ...item, isAdded: true };
         else return item;
       });
-      this.store.dispatch(
-        new EditUserStory(this.absoluteFilePath, {
-          description: this.userStoryForm.getRawValue().description,
-          name: this.userStoryForm.getRawValue().name,
-          id: this.data.id,
-          chatHistory: newArray,
-        }),
-      );
       this.chatHistory = newArray;
+      this.updateUserStoryWithAI();
     }
   }
 

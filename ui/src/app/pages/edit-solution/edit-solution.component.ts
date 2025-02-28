@@ -310,13 +310,8 @@ ${chat.assistant}`,
         if (item.assistant == chat.assistant) return { ...item, isAdded: true };
         else return item;
       });
-      this.store.dispatch(
-        new UpdateFile(this.absoluteFilePath, {
-          requirement: this.requirementForm.get('content')?.value,
-          title: this.requirementForm.get('title')?.value,
-          chatHistory: newArray,
-        }),
-      );
+      this.chatHistory = newArray;
+      this.updateRequirementWithAI()
     }
   }
 
