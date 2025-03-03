@@ -17,6 +17,7 @@ import { ElectronService } from '../../services/electron/electron.service';
 import { ToasterService } from '../../services/toaster/toaster.service';
 import { NgIf } from '@angular/common';
 import { NgxLoadingModule } from 'ngx-loading';
+import { AppSliderComponent } from '../../components/core/slider/slider.component';
 import { ButtonComponent } from '../../components/core/button/button.component';
 import { ErrorMessageComponent } from '../../components/core/error-message/error-message.component';
 import {
@@ -42,6 +43,7 @@ import { SettingsComponent } from 'src/app/components/settings/settings.componen
     InputFieldComponent,
     TextareaFieldComponent,
     ToggleComponent,
+    AppSliderComponent,
   ],
 })
 export class CreateSolutionComponent implements OnInit {
@@ -87,6 +89,30 @@ export class CreateSolutionComponent implements OnInit {
       id: new FormControl(uuid()),
       createdAt: new FormControl(new Date().toISOString()),
       cleanSolution: new FormControl(false),
+      enableBRD: new FormControl(true),
+      enablePRD: new FormControl(true),
+      enableUIR: new FormControl(true),
+      enableNFR: new FormControl(true),
+      brd: new FormControl(15, [
+        Validators.required,
+        Validators.min(1),
+        Validators.max(30),
+      ]),
+      prd: new FormControl(15, [
+        Validators.required,
+        Validators.min(1),
+        Validators.max(30),
+      ]),
+      uir: new FormControl(15, [
+        Validators.required,
+        Validators.min(1),
+        Validators.max(30),
+      ]),
+      nfr: new FormControl(15, [
+        Validators.required,
+        Validators.min(1),
+        Validators.max(30),
+      ]),
     });
   }
 
