@@ -45,6 +45,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ToasterService } from 'src/app/services/toaster/toaster.service';
 import { provideIcons } from '@ng-icons/core';
 import { heroSparklesSolid } from '@ng-icons/heroicons/solid';
+import { RichTextEditorComponent } from 'src/app/components/core/rich-text-editor/rich-text-editor.component';
 import { RequirementIdService } from 'src/app/services/requirement-id.service';
 
 @Component({
@@ -63,6 +64,7 @@ import { RequirementIdService } from 'src/app/services/requirement-id.service';
     MultiUploadComponent,
     ErrorMessageComponent,
     MatTooltipModule,
+    RichTextEditorComponent
   ],
   providers: [
     provideIcons({
