@@ -28,8 +28,8 @@ import { AddBreadcrumb } from '../../store/breadcrumb/breadcrumb.actions';
 import { CommonModule, NgClass, NgFor, NgIf } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialog } from '@angular/material/dialog';
 import { InputFieldComponent } from '../../components/core/input-field/input-field.component';
+import { DialogService } from '../../services/dialog/dialog.service';
 import { ButtonComponent } from '../../components/core/button/button.component';
 import { AiChatComponent } from '../../components/ai-chat/ai-chat.component';
 import { MultiUploadComponent } from '../../components/multi-upload/multi-upload.component';
@@ -45,7 +45,7 @@ import {
   TOASTER_MESSAGES,
 } from '../../constants/app.constants';
 import { ToasterService } from 'src/app/services/toaster/toaster.service';
-import { catchError, switchMap, take, Observable, filter, first } from 'rxjs';
+import { catchError, switchMap, take, Observable, filter, first, map, lastValueFrom } from 'rxjs';
 import { RequirementTypeEnum } from 'src/app/model/enum/requirement-type.enum';
 import { heroSparklesSolid } from '@ng-icons/heroicons/solid';
 import { RichTextEditorComponent } from 'src/app/components/core/rich-text-editor/rich-text-editor.component';
@@ -117,7 +117,7 @@ export class EditSolutionComponent {
     private store: Store,
     private router: Router,
     private featureService: FeatureService,
-    private dialog: MatDialog,
+    private dialogService: DialogService,
     private toastService: ToasterService,
   ) {
     const url = this.router.url;
@@ -195,21 +195,14 @@ export class EditSolutionComponent {
     title: string;
     description: string;
     cancelButtonText: string;
-    proceedButtonText: string;
+    confirmButtonText: string;
   }): Promise<boolean> {
-    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-      width: '500px',
-      data: {
+    return lastValueFrom(
+      this.dialogService.confirm({
         ...dialogConfig,
-        renderNewLine: true,
-      },
-    });
-
-    return new Promise((resolve) => {
-      dialogRef.afterClosed().subscribe((result) => {
-        resolve(result === false); // false means proceed with update
-      });
-    });
+        renderNewLine: true
+      }).pipe(map(result => !result))
+    );
   }
 
   private async preUpdateChecks(): Promise<boolean> {
@@ -229,7 +222,7 @@ export class EditSolutionComponent {
             hasRemovedLinks: hasRemovedLinks,
           }),
           cancelButtonText: CONFIRMATION_DIALOG.CONFIRM_BRD_UPDATE.CANCEL_BUTTON_TEXT,
-          proceedButtonText: CONFIRMATION_DIALOG.CONFIRM_BRD_UPDATE.PROCEED_BUTTON_TEXT,
+          confirmButtonText: CONFIRMATION_DIALOG.CONFIRM_BRD_UPDATE.PROCEED_BUTTON_TEXT,
         });
       }
     }
@@ -247,7 +240,7 @@ export class EditSolutionComponent {
           title: CONFIRMATION_DIALOG.CONFIRM_PRD_UPDATE.TITLE,
           description: CONFIRMATION_DIALOG.CONFIRM_PRD_UPDATE.DESCRIPTION,
           cancelButtonText: CONFIRMATION_DIALOG.CONFIRM_PRD_UPDATE.CANCEL_BUTTON_TEXT,
-          proceedButtonText: CONFIRMATION_DIALOG.CONFIRM_PRD_UPDATE.PROCEED_BUTTON_TEXT,
+          confirmButtonText: CONFIRMATION_DIALOG.CONFIRM_PRD_UPDATE.PROCEED_BUTTON_TEXT,
         });
       }
     }
@@ -689,26 +682,23 @@ ${chat.assistant}`,
   }
 
   private promptFileDeletion(reqId: string) {
-    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-      width: '500px',
-      data: {
+    this.dialogService
+      .confirm({
         title: CONFIRMATION_DIALOG.DELETION.TITLE,
         description: CONFIRMATION_DIALOG.DELETION.DESCRIPTION(reqId),
         cancelButtonText: CONFIRMATION_DIALOG.DELETION.CANCEL_BUTTON_TEXT,
-        proceedButtonText: CONFIRMATION_DIALOG.DELETION.PROCEED_BUTTON_TEXT,
-      },
-    });
-
-    dialogRef.afterClosed().subscribe((res) => {
-      if (res === false) {
-        this.store.dispatch(new ArchiveFile(this.absoluteFilePath));
-        this.allowFreeRedirection = true;
-        this.navigateBackToDocumentList(this.initialData);
-        this.toastService.showSuccess(
-          TOASTER_MESSAGES.ENTITY.DELETE.SUCCESS(this.folderName, reqId),
-        );
-      }
-    });
+        confirmButtonText: CONFIRMATION_DIALOG.DELETION.PROCEED_BUTTON_TEXT,
+      })
+      .subscribe((res) => {
+        if (res) {
+          this.store.dispatch(new ArchiveFile(this.absoluteFilePath));
+          this.allowFreeRedirection = true;
+          this.navigateBackToDocumentList(this.initialData);
+          this.toastService.showSuccess(
+            TOASTER_MESSAGES.ENTITY.DELETE.SUCCESS(this.folderName, reqId),
+          );
+        }
+      });
   }
 
   handleFileContent(content: string) {
