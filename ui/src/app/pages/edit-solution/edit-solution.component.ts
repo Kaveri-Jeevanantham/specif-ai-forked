@@ -201,7 +201,7 @@ export class EditSolutionComponent {
       this.dialogService.confirm({
         ...dialogConfig,
         renderNewLine: true
-      }).pipe(map(result => !result))
+      }).pipe(map(result => result))
     );
   }
 
@@ -711,9 +711,10 @@ ${chat.assistant}`,
 
   canDeactivate(): boolean {
     return (
-      !this.allowFreeRedirection &&
+      (!this.allowFreeRedirection &&
       this.requirementForm.dirty &&
-      this.requirementForm.touched
+      this.requirementForm.touched) ||
+      this.checkMappingChanges()
     );
   }
 
@@ -757,6 +758,23 @@ ${chat.assistant}`,
     return this.folderName === FOLDER.BRD;
   };
 
+  private checkMappingChanges(): boolean {
+    const formValue = this.requirementForm.getRawValue();
+  
+    if (this.isPRD()) {
+      const currentBRDs = formValue.linkedBRDIds || [];
+      return !(currentBRDs.length === this.currentLinkedBRDIds.length && 
+             currentBRDs.every((id: string) => this.currentLinkedBRDIds.includes(id)));
+    }
+    
+    if (this.isBRD()) {
+      const currentPRDs = formValue.linkedToPRDIds || [];
+      return !(currentPRDs.length === this.currentLinkedPRDIds.length &&
+             currentPRDs.every((id: string) => this.currentLinkedPRDIds.includes(id)));
+    }
+    return false;
+  }
+  
   extractPropertyValues<
     TData extends Array<TDataItem>,
     TDataItem extends Record<string, any>,
