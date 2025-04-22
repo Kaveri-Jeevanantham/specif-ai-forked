@@ -6,6 +6,14 @@
   "main": "build/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "test:kg": "npm run build && node build/knowledge-graph/test-utils/kg-test.js",
+    "test:kg:quick": "npm run build && node build/knowledge-graph/examples/quick-test.js",
+    "test:kg:all": "npm run test:kg && npm run test:kg:quick",
+    "kg:clean": "npm run build && node build/knowledge-graph/utils/cleanup.js",
+    "kg:example": "npm run build && node build/knowledge-graph/examples/document-processor.js",
+    "kg:visualize": "npm run build && node build/knowledge-graph/examples/quick-test.js",
+    "kg:verify": "npm run build && node build/knowledge-graph/test-utils/verify-setup.js",
+    "kg:setup": "npm install && npm run build && npm run kg:verify",
     "clean": "rm -rf build",
     "check": "tsc --noEmit",
     "build": "npm run clean && npm run check && tsc --pretty --listEmittedFiles",
@@ -29,6 +37,7 @@
     "@types/electron": "^1.6.12",
     "@types/node": "^22.13.10",
     "@types/semver": "^7.5.8",
+    "@types/uuid": "^10.0.0",
     "autoprefixer": "^10.4.20",
     "concurrently": "^8.2.2",
     "electron": "^31.2.1",
@@ -57,6 +66,7 @@
     "@smithy/eventstream-codec": "^2.2.0",
     "@smithy/signature-v4": "^2.3.0",
     "axios": "^1.7.7",
+    "compromise": "^14.14.4",
     "dotenv": "^16.4.7",
     "electron-notarize": "^1.2.2",
     "electron-squirrel-startup": "^1.0.1",
@@ -66,7 +76,10 @@
     "jsonrepair": "^3.12.0",
     "langchain": "^0.3.19",
     "langfuse": "^3.37.0",
+    "natural": "^8.0.1",
+    "node-nlp": "^5.0.0-alpha.5",
     "openai": "^4.87.4",
+    "uuid": "^11.1.0",
     "zod": "^3.24.2"
   },
   "build": {
@@ -76,7 +89,8 @@
     "appId": "",
     "extraResources": [
       ".env",
-      "ui"
+      "ui",
+      "knowledge-graph/examples/sample-documents/**/*"
     ],
     "mac": {
       "forceCodeSigning": true,

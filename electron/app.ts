@@ -10,6 +10,7 @@ import { setupFeatureHandlers } from "./handlers/feature-handler";
 import { setupSolutionHandlers } from "./handlers/solution-handler";
 import { setupJiraHandlers } from "./handlers/jira-handler";
 import { setupAppUpdateHandler } from "./handlers/app-update-handler";
+import { KnowledgeGraphHandler } from "./handlers/knowledge-graph-handler";
 
 // ========================
 // CONFIGURATION
@@ -35,6 +36,7 @@ function initializeConfig() {
 // ========================
 
 let mainWindow: BrowserWindow | null = null;
+let knowledgeGraphHandler: KnowledgeGraphHandler | null = null;
 
 function getIconPath(themeConfiguration: any): string {
   const icons = themeConfiguration.appIcons;
@@ -155,6 +157,16 @@ function isValidUrl(url: string): boolean {
 }
 
 // ========================
+// KNOWLEDGE GRAPH SETUP
+// ========================
+
+function setupKnowledgeGraph() {
+  if (!knowledgeGraphHandler) {
+    knowledgeGraphHandler = new KnowledgeGraphHandler();
+  }
+}
+
+// ========================
 // MAIN APPLICATION LOGIC
 // ========================
 
@@ -191,5 +203,6 @@ app.whenReady().then(async () => {
     setupVisualizationHandlers();
     setupFeatureHandlers();
     setupSolutionHandlers();
+    setupKnowledgeGraph(); // Initialize Knowledge Graph
   }
 });

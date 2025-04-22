@@ -1,4 +1,11 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
+import { 
+  Query,
+  SemanticQuery,
+  StructuredQuery,
+  QueryResult
+} from './knowledge-graph/types/query.types';
+import { ProcessingResult } from './knowledge-graph/types/entity.types';
 
 type IpcListener = (event: IpcRendererEvent, ...args: any[]) => void;
 
@@ -77,7 +84,57 @@ const appAutoUpdaterListeners = {
     ipcRenderer.invoke("app-updater:check-for-updates"),
   downloadUpdates: (data: any) =>
     ipcRenderer.invoke("app-updater:download-updates", data)
-}
+};
+
+// Knowledge Graph API
+const knowledgeGraphListeners = {
+  // Document Processing
+  processDocument: (filePath: string): Promise<ProcessingResult> => 
+    ipcRenderer.invoke('kg:process-document', filePath),
+  
+  processDocuments: (filePaths: string[]): Promise<ProcessingResult[]> => 
+    ipcRenderer.invoke('kg:process-documents', filePaths),
+  
+  // Querying
+  query: (query: Query): Promise<QueryResult> => 
+    ipcRenderer.invoke('kg:query', query),
+  
+  semanticSearch: (params: {
+    query: string;
+    options?: SemanticQuery['options'];
+  }): Promise<QueryResult> => 
+    ipcRenderer.invoke('kg:semantic-search', params),
+  
+  structuredSearch: (patterns: StructuredQuery['patterns']): Promise<QueryResult> => 
+    ipcRenderer.invoke('kg:structured-search', patterns),
+  
+  // Graph Management
+  exportGraph: (): Promise<string | undefined> => 
+    ipcRenderer.invoke('kg:export'),
+  
+  importGraph: (): Promise<void> => 
+    ipcRenderer.invoke('kg:import'),
+  
+  getStats: (): Promise<{
+    graphStats: {
+      totalGraphs: number;
+      totalSize: number;
+      lastModified: Date;
+    };
+    queryStats: {
+      totalQueries: number;
+      averageExecutionTime: number;
+      successRate: number;
+      commonPatterns: Array<{
+        pattern: string;
+        count: number;
+      }>;
+    };
+  }> => ipcRenderer.invoke('kg:get-stats'),
+  
+  clear: (): Promise<void> => 
+    ipcRenderer.invoke('kg:clear')
+};
 
 const electronAPI = {
   ...electronListeners,
@@ -86,7 +143,17 @@ const electronAPI = {
   ...solutionListeners,
   ...visualizationListeners,
   ...featureListeners,
-  ...appAutoUpdaterListeners
+  ...appAutoUpdaterListeners,
+  ...knowledgeGraphListeners
 };
 
 contextBridge.exposeInMainWorld("electronAPI", electronAPI);
+
+// Type definitions for the exposed API
+declare global {
+  interface Window {
+    electronAPI: typeof electronAPI;
+  }
+}
+
+export type ElectronAPI = typeof electronAPI;
