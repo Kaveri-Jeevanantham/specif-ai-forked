@@ -34,7 +34,7 @@
   "devDependencies": {
     "@electron/fuses": "^1.8.0",
     "@electron/rebuild": "^3.6.0",
-    "@types/electron": "^1.6.12",
+    "@electron/typescript-definitions": "github:electron/typescript-definitions",
     "@types/node": "^22.13.10",
     "@types/semver": "^7.5.8",
     "@types/uuid": "^10.0.0",

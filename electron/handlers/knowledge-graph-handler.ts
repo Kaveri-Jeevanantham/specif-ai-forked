@@ -15,6 +15,22 @@ import { GraphData } from '../knowledge-graph/types/graph.types';
 import { promises as fs } from 'fs';
 import { extname } from 'path';
 
+interface GraphStats {
+  totalGraphs: number;
+  totalSize: number;
+  lastModified: Date;
+}
+
+interface QueryStats {
+  totalQueries: number;
+  averageExecutionTime: number;
+  successRate: number;
+  commonPatterns: Array<{
+    pattern: string;
+    count: number;
+  }>;
+}
+
 export class KnowledgeGraphHandler {
   private entityExtractor: EntityExtractor;
   private graphBuilder: GraphBuilder;
@@ -177,8 +193,8 @@ export class KnowledgeGraphHandler {
   public async handleGetStats(
     _event: Electron.IpcMainInvokeEvent
   ): Promise<{
-    graphStats: Awaited<ReturnType<typeof this.persistenceService.getStats>>;
-    queryStats: ReturnType<typeof this.queryEngine.getQueryStats>;
+    graphStats: GraphStats;
+    queryStats: QueryStats;
   }> {
     const [graphStats, queryStats] = await Promise.all([
       this.persistenceService.getStats(),
