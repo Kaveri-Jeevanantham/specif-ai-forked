@@ -1,189 +1,253 @@
 # Guardrails System
 
-A security and validation system for LLM and Agent operations that enforces content safety and system boundaries.
+A robust validation and safety system for LLM operations and agent interactions.
 
-## Core Features
-
-- Content validation (PII, sensitive data)
-- File system boundary enforcement
-- Restricted command prevention
-- SSL requirement enforcement
-- Support for both LLM and Agent workflows
-
-## Usage Examples
-
-### LLM Integration
-
-```typescript
-import { LLMGuardrailIntegration } from './integration';
-
-// Initialize guardrails
-const guardrails = new LLMGuardrailIntegration();
-
-// Example 1: Process messages
-const messages = [
-  { role: 'user', content: 'My password is secret123' }
-];
-
-try {
-  const safeMessages = await guardrails.processMessages(messages);
-  // Output: [{ role: 'user', content: 'My password is [REDACTED]' }]
-} catch (error) {
-  console.error('Validation failed:', error.message);
-}
-
-// Example 2: Validate response
-const response = await guardrails.validateResponse(
-  'Use sudo rm -rf to delete files'
-);
-// Throws GuardrailError: Contains restricted command
+```mermaid
+graph TD
+    A[Guardrails System] --> B[Core Components]
+    B --> C[Guardrail Class]
+    B --> D[Guard Chain]
+    B --> E[Validators]
+    
+    C --> F[Validation Logic]
+    D --> G[Input Processing]
+    D --> H[Output Processing]
+    E --> I[Priority-based Execution]
 ```
 
-### Agent Integration
+## Implementation Architecture
+
+### LangChain Implementation
+```mermaid
+graph LR
+    A[LLM Request] --> B[LangChain Provider]
+    B --> C[Provider Factory]
+    C --> D[Specific Provider]
+    D --> E[Guard Chain]
+    E --> F[LLM Response]
+```
+
+### Native Handler Implementation
+```mermaid
+graph LR
+    A[LLM Request] --> B[Native Handler]
+    B --> C[Guard Chain]
+    C -->|Input Validation| D[Original Handler]
+    D --> E[Guard Chain]
+    E -->|Output Validation| F[LLM Response]
+```
+
+## Overview
+
+The Guardrails system provides a flexible and extensible framework for implementing safety checks and validation rules for LLM operations. It ensures both input and output validation through a chain of prioritized guards and validators.
+
+### Key Features
+
+- Priority-based validation chain
+- Bidirectional processing (input/output validation)
+- Configurable strict mode
+- Extensible validator system
+- Comprehensive error handling and reporting
+- Content sanitization capabilities
+
+## Architecture
+
+### Core Components
+
+1. **Guardrail Class**
+   - Orchestrates validation process
+   - Manages validator priority
+   - Handles configuration and error reporting
+
+2. **Guard Chain**
+   - Implements chain of responsibility pattern
+   - Processes both input and output
+   - Maintains validation order based on priority
+
+3. **Validators**
+   - Modular validation components
+   - Priority-based execution
+   - Customizable validation logic
+
+## Usage
+
+### Basic Setup
 
 ```typescript
-import { AgentGuardrailIntegration } from './integration';
+import { Guardrail } from './core/guardrail';
+import { ContentValidator } from './validators/content';
+import { BoundaryValidator } from './validators/boundary';
 
-const guardrails = new AgentGuardrailIntegration();
+// Create validators
+const contentValidator = new ContentValidator();
+const boundaryValidator = new BoundaryValidator();
 
-// Example 1: Validate agent state
+// Initialize guardrail with validators
+const guardrail = new Guardrail([
+  contentValidator,
+  boundaryValidator
+]);
+
+// Configure guardrail
+guardrail.updateConfig({
+  strict: true,
+  logLevel: 'warn'
+});
+```
+
+### Validation Example
+
+```typescript
+// Context for validation
+const context: GuardrailContext = {
+  type: 'llm',
+  operation: 'generate',
+  metadata: {
+    model: 'gpt-4'
+  }
+};
+
 try {
-  const state = {
-    currentPath: '/etc/system',
-    command: 'chmod 777 file.txt'
-  };
-  
-  await guardrails.validateState(state, 'file_operation');
-  // Throws GuardrailError: Contains restricted path and command
+  const result = await guardrail.validate(input, context);
+  if (result.isValid) {
+    // Process validated input
+    console.log('Input validated successfully');
+    console.log('Sanitized content:', result.sanitizedContent);
+  }
 } catch (error) {
-  console.error('State validation failed:', error.message);
+  if (error instanceof GuardrailError) {
+    console.error('Validation failed:', error.message);
+  }
 }
+```
 
-// Example 2: Validate tool usage
-try {
-  const args = {
-    url: 'http://insecure-site.com',
-    data: { email: 'user@example.com' }
-  };
-  
-  await guardrails.validateToolUse('api_call', args);
-  // Throws GuardrailError: Non-SSL URL and contains sensitive data
-} catch (error) {
-  console.error('Tool validation failed:', error.message);
-}
+### Guard Chain Implementation
+
+```typescript
+// Create a guard chain
+const guardChain = new GuardChain([
+  new ScopeGuard(),
+  new ContentGuard()
+]);
+
+// Process input through the chain
+const processedInput = await guardChain.processInput(messages, context);
+
+// Process output through the chain
+const processedOutput = await guardChain.processOutput(response, context);
 ```
 
 ## Configuration
 
-### Content Validator
-```typescript
-const contentValidator = new ContentValidator();
+### GuardrailConfig Interface
 
-// Add custom pattern
-contentValidator.addPattern(
-  'custom_secret',
-  /MY_SECRET_\w+/g,
-  '[REDACTED-SECRET]',
-  'custom secret pattern'
-);
+```typescript
+interface GuardrailConfig {
+  strict: boolean;           // Throw errors on validation failures
+  logLevel: string;         // error | warn | info | debug
+  validationOptions?: any;  // Custom validation options
+}
 ```
 
-### Boundary Validator
+### Default Configuration
+
 ```typescript
-const boundaryValidator = new BoundaryValidator({
-  allowedPaths: [
-    process.cwd(),
-    '/safe/path'
-  ],
-  restrictedCommands: [
-    'rm -rf',
-    'chmod',
-    'sudo'
-  ],
-  requiresSSL: true
-});
+const DEFAULT_GUARDRAIL_CONFIG = {
+  strict: true,
+  logLevel: 'warn'
+};
 ```
 
 ## Best Practices
 
-1. **Always Validate Both Input and Output**
-   ```typescript
-   // Validate input
-   const safeInput = await guardrails.processMessages(messages);
-   
-   // Process with LLM
-   const response = await llm.process(safeInput);
-   
-   // Validate output
-   const safeResponse = await guardrails.validateResponse(response);
-   ```
+### Validator Priority Management
 
-2. **Handle Errors Appropriately**
-   ```typescript
-   try {
-     await guardrails.validateState(state, operation);
-   } catch (error) {
-     if (error instanceof GuardrailError) {
-       // Handle validation failure
-       logValidationError(error);
-       return fallbackBehavior();
-     }
-     // Handle other errors
-     throw error;
-   }
-   ```
+- Assign lower numbers for higher priority validators
+- Critical validators should run first
+- Content sanitization should typically run last
 
-3. **Configure Based on Context**
-   ```typescript
-   // Development
-   const devGuardrails = new Guardrail([
-     new BoundaryValidator({
-       allowedPaths: [process.cwd()],
-       requiresSSL: false
-     })
-   ]);
+### Error Handling
 
-   // Production
-   const prodGuardrails = new Guardrail([
-     new BoundaryValidator({
-       allowedPaths: ['/app'],
-       requiresSSL: true
-     })
-   ]);
-   ```
+- Use strict mode in production for maximum safety
+- Implement proper error recovery mechanisms
+- Log validation failures for monitoring
 
-## Error Handling
+### Custom Validator Implementation
 
 ```typescript
-catch (error) {
-  if (error instanceof GuardrailError) {
-    switch (error.context.type) {
-      case 'llm':
-        // Handle LLM-specific violations
-        break;
-      case 'agent':
-        // Handle agent-specific violations
-        break;
-    }
+import { BaseValidator } from './core/base-validator';
+
+export class CustomValidator extends BaseValidator {
+  constructor() {
+    super('custom-validator', 100); // ID and priority
+  }
+
+  async validate(input: any, context: GuardrailContext): Promise<ValidationResult> {
+    // Implement validation logic
+    return {
+      isValid: true,
+      messages: [],
+      sanitizedContent: input
+    };
   }
 }
 ```
 
-## Integration with Existing Code
+### Configuration Recommendations
+
+1. **Development Environment**
+   ```typescript
+   {
+     strict: false,
+     logLevel: 'debug'
+   }
+   ```
+
+2. **Production Environment**
+   ```typescript
+   {
+     strict: true,
+     logLevel: 'warn'
+   }
+   ```
+
+## API Reference
+
+### Core Types
 
 ```typescript
-// In your LLM handler
-class YourLLMHandler {
-  private guardrails = new LLMGuardrailIntegration();
-  
-  async process(messages: Message[]): Promise<string> {
-    // 1. Validate input
-    const safeMessages = await this.guardrails.processMessages(messages);
-    
-    // 2. Process with LLM
-    const response = await this.llm.generate(safeMessages);
-    
-    // 3. Validate output
-    return this.guardrails.validateResponse(response);
+type GuardrailOperationType = 'llm' | 'agent';
+
+interface GuardrailContext {
+  type: GuardrailOperationType;
+  operation: string;
+  metadata?: Record<string, any>;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  messages: string[];
+  sanitizedContent?: any;
+}
+```
+
+### Error Handling
+
+```typescript
+class GuardrailError extends Error {
+  constructor(message: string, public context: GuardrailContext) {
+    super(message);
+    this.name = 'GuardrailError';
   }
 }
+```
+
+## Contributing
+
+When implementing new validators or guards:
+
+1. Extend the appropriate base class (`BaseValidator` or `BaseGuard`)
+2. Assign appropriate priority levels
+3. Implement comprehensive error messages
+4. Add proper TypeScript types
+5. Include unit tests for validation logic
