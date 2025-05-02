@@ -30,10 +30,17 @@ export function buildLLMHandler(provider: LLMProvider | string, config: Record<s
   if (ProviderRegistry.isLangChainProvider(providerName)) {
     const langchainProvider = ProviderRegistry.createLangChainProvider(providerName, config);
     const handler = new LangChainHandler(langchainProvider, config, guardChain);
+    console.log('[buildLLMHandler] Details Langchain:', {
+      providerName
+    });
     return handler.createHandler();
   } else {
+   
     const nativeProvider = ProviderRegistry.createNativeProvider(providerName, config);
     const handler = new NativeHandler(nativeProvider, guardChain);
+    console.log('[buildLLMHandler] Details Native:', {
+      providerName
+    });
     return handler.createHandler();
   }
 }

@@ -10,9 +10,13 @@ import OpenRouterHandler from './openrouter';
 
 // List of providers that use LangChain
 const LANGCHAIN_PROVIDERS = [
+  LLMProvider.OPENAI_NATIVE,
+  LLMProvider.OPENAI,      // Azure OpenAI
   LLMProvider.ANTHROPIC,
   LLMProvider.BEDROCK,
-  LLMProvider.GEMINI
+  LLMProvider.OLLAMA,
+  LLMProvider.GEMINI,
+  LLMProvider.OPENROUTER
 ];
 
 export class ProviderRegistry {

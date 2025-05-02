@@ -1,10 +1,46 @@
 import { LLMHandler } from '../llm-handler';
-import { Message } from '../llm-types';
+import { Message, ModelInfo } from '../llm-types';
 import { GuardChain } from '../guardrails/chain';
 import { BaseHandler } from './base-handler';
 
 /**
- * Handler for native providers
+ * Native LLM handler implementation
+ */
+class NativeLLMHandler extends LLMHandler {
+  protected config: Record<string, any>;
+  private originalHandler: LLMHandler;
+
+  constructor(
+    handler: LLMHandler,
+    config: Record<string, any>,
+    private processWithGuards: (messages: Message[], operation: string | undefined, processor: (messages: Message[]) => Promise<string>) => Promise<string>
+  ) {
+    super();
+    this.originalHandler = handler;
+    this.config = handler.getConfig(config);
+  }
+
+  async invoke(messages: Message[], systemPrompt?: string | null, operation?: string): Promise<string> {
+    return this.processWithGuards(messages, operation, async (processedMessages) => {
+      return this.originalHandler.invoke(processedMessages, systemPrompt, operation);
+    });
+  }
+
+  getModel(): ModelInfo {
+    return this.originalHandler.getModel();
+  }
+
+  getConfig(config: Record<string, any>): Record<string, any> {
+    return this.originalHandler.getConfig(config);
+  }
+
+  isValid(): boolean | Promise<boolean> {
+    return this.originalHandler.isValid();
+  }
+}
+
+/**
+ * Factory for creating native handlers
  */
 export class NativeHandler extends BaseHandler {
   constructor(
@@ -14,33 +50,11 @@ export class NativeHandler extends BaseHandler {
     super(guardChain);
   }
 
-  /**
-   * Create LLM handler with guard chain
-   */
   createHandler(): LLMHandler {
-    const originalHandler = this.handler;
-    const self = this;
-
-    return new class extends LLMHandler {
-      protected config = originalHandler.getConfig({});
-
-      async invoke(messages: Message[], systemPrompt?: string | null, operation?: string): Promise<string> {
-        return self.processWithGuards(messages, operation, async (processedMessages) => {
-          return originalHandler.invoke(processedMessages, systemPrompt, operation);
-        });
-      }
-
-      getConfig(config: Record<string, any>): Record<string, any> {
-        return originalHandler.getConfig(config);
-      }
-
-      getModel() {
-        return originalHandler.getModel();
-      }
-
-      isValid(): boolean | Promise<boolean> {
-        return originalHandler.isValid();
-      }
-    };
+    return new NativeLLMHandler(
+      this.handler,
+      this.handler.getConfig({}),
+      this.processWithGuards.bind(this)
+    );
   }
 }
