@@ -189,7 +189,7 @@ The stories and tasks generated as part of the solutions can be used to create a
 - Automatic story and task creation in Jira.
 - Bulk export capabilities.
 
-For Jira setup instructions, please refer to our [Jira Setup Guide](docs/JIRA-README.md).
+For Jira setup instructions, please refer to our [Jira Setup Guide](docs/docs/current/JIRA-README.md).
 
 #### AWS Bedrock Knowledge Base
 The enterprise knowledge base is integrated with AI-powered chat to enhance suggestions and enable iterative conversations for Business Requirement Documents (BRDs), Product Requirement Documents (PRDs), Non-functional Requirements, User Stories, and Tasks. Features include: 
@@ -210,7 +210,7 @@ The Model Context Protocol (MCP) is a powerful integration framework that enable
 
 ### 📚 Built-in Integration: AWS Bedrock Knowledge Base
 
-Specifai includes native support for **AWS Bedrock Knowledge Base (KB)**. Configuration is available directly in the UI. For detailed setup instructions, see our [AWS Bedrock KB Configuration Guide](docs/aws-bedrock-kb-configuration.md).
+Specifai includes native support for **AWS Bedrock Knowledge Base (KB)**. Configuration is available directly in the UI. For detailed setup instructions, see our [AWS Bedrock KB Configuration Guide](docs/docs/current/aws-bedrock-kb-configuration.md).
 
 <div align="center">
   <img src="assets/img/mcp/aws-bedrock-kb-config.png" alt="AWS Bedrock KB Configuration" width="800">
