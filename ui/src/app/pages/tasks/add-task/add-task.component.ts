@@ -256,30 +256,37 @@ export class AddTaskComponent implements OnDestroy {
     }
   }
 
+  private handlePostUpdateActions() {
+    this.taskForm.markAsUntouched();
+    this.taskForm.markAsPristine();
+    this.toastService.showSuccess(
+      TOASTER_MESSAGES.ENTITY.UPDATE.SUCCESS(
+        this.entityType,
+        this.existingTask.id,
+      ),
+    );
+  }
+
+  private performTaskUpdate() {
+    const newFileName = this.config.fileName.replace('base', 'feature');
+    this.store.dispatch(
+      new UpdateTask(
+        {
+          ...this.taskForm.getRawValue(),
+          chatHistory: this.chatHistory,
+          subTaskTicketId: this.existingTask.subTaskTicketId,
+        },
+        `${this.selectedProject}/${this.config.folderName}/${newFileName}`,
+      ),
+    );
+    this.handlePostUpdateActions();
+  }
+
   updateTask() {
     if (this.taskForm.valid) {
-      const newFileName = this.config.fileName.replace('base', 'feature');
-      this.logger.debug(this.taskForm.getRawValue());
       const data = this.taskForm.getRawValue();
       if (!data.useGenAI && this.uploadedFileContent.length === 0) {
-        this.store.dispatch(
-          new UpdateTask(
-            {
-              ...this.taskForm.getRawValue(),
-              chatHistory: this.chatHistory,
-              subTaskTicketId: this.existingTask.subTaskTicketId,
-            },
-            `${this.selectedProject}/${this.config.folderName}/${newFileName}`,
-          ),
-        );
-        this.taskForm.markAsUntouched();
-        this.taskForm.markAsPristine();
-        this.toastService.showSuccess(
-          TOASTER_MESSAGES.ENTITY.UPDATE.SUCCESS(
-            this.entityType,
-            this.existingTask.id,
-          ),
-        );
+        this.performTaskUpdate();
       } else {
         this.editTaskWithAI();
       }
@@ -288,10 +295,9 @@ export class AddTaskComponent implements OnDestroy {
 
   updateTaskFromChat(data: any) {
     let { chat, chatHistory } = data;
-    if (chat.contentToAdd) {
+    if (chat?.contentToAdd) {
       this.taskForm.patchValue({
-        acceptance: `${this.taskForm.getRawValue().acceptance}
-${chat.contentToAdd}`,
+        acceptance: `${chat.contentToAdd}`,
         subTaskTicketId: this.existingTask.subTaskTicketId,
       });
       let newArray = chatHistory.map((item: any) => {
@@ -299,7 +305,8 @@ ${chat.contentToAdd}`,
         else return item;
       });
       this.chatHistory = newArray;
-      this.editTaskWithAI();
+      // Use shared method to avoid duplicate logic
+      this.performTaskUpdate();
     }
   }
 
@@ -426,11 +433,12 @@ ${chat.contentToAdd}`,
               `${this.selectedProject}/${this.config.folderName}/${newFileName}`,
             ),
           );
-          this.taskForm.markAsUntouched();
-          this.taskForm.markAsPristine();
-          this.toastService.showSuccess(
-            TOASTER_MESSAGES.ENTITY.UPDATE.SUCCESS(this.entityType, data.id),
-          );
+          this.taskForm.patchValue({
+            list: taskKey,
+            acceptance: this.responseFormatter(taskEntry[taskKey])
+          });
+
+          this.handlePostUpdateActions();
         } else {
           this.logger.error('No task key found other than "id"');
         }
